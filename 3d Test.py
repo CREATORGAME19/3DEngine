@@ -2,8 +2,8 @@ from tkinter import *
 import math
 global canvas
 root = Tk()
-height = 400
-width = 400
+height = 600
+width = 600
 def onKeyPress(event):
     global x,y,z,objects,coords,xrotation,yrotation,zrotation
     print(event.keysym)
@@ -29,10 +29,10 @@ def onKeyPress(event):
         y = y-1
         Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height)
     elif (event.keysym) == "a":
-        yrotation = yrotation - 1
+        yrotation = yrotation - 10
         Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height)
     elif (event.keysym) == "d":
-        yrotation += 1
+        yrotation += 10
         Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height)
 x = 0
 y = 0
@@ -40,7 +40,7 @@ z = 0
 xrotation = 0 # From centre
 yrotation = 0
 zrotation = 0
-coords = [[0,0,10],[0,10,10],[10,0,10],[10,10,10],[0,0,20],[0,10,20],[10,0,20],[10,10,20],[0,0,-1],[0,1,-1],[1,0,-1],[1,1,-1],[0,1,-1],[0,1,-1],[1,0,-1],[1,1,-1]] # [x,y,z]
+coords = [[0,0,1],[0,1,1],[1,0,1],[1,1,1],[0,0,2],[0,1,2],[1,0,2],[1,1,2],[0,0,-1],[0,1,-1],[1,0,-1],[1,1,-1],[0,1,-1],[0,1,-1],[1,0,-1],[1,1,-1]] # [x,y,z]
 objects = [[[0,1],[0,2],[1,3],[2,3],[0,4],[1,5],[2,6],[3,7],[4,5],[4,6],[6,7],[5,7]],[]]
 root.bind('<KeyPress>', onKeyPress)
 def matrix_multiply(a,b):
@@ -74,7 +74,7 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
             x1 = (((coords[i])[0]-x)/((coords[i])[2]-z))
             y1 = (((coords[i])[1]-y)/((coords[i])[2]-z))
             """
-            l = [x1,y1]
+            l = [x1,y1,i]
             newvertices.append(l)
 
     for i in range(len(newvertices)):
@@ -83,14 +83,33 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
         sx  = (newvertices[i])[0]-2
         sy  = (newvertices[i])[1]-2
         canvas.create_oval((fx,fy,sx,sy),fill = "black")
-    
-    for i in range(len(objects)):
-        for n in range(len(objects[i])):
-            x1 = ((newvertices[((objects[i])[n])[0]])[0])
-            y1 = ((newvertices[((objects[i])[n])[0]])[1])
-            x2 = ((newvertices[((objects[i])[n])[1]])[0])
-            y2 = ((newvertices[((objects[i])[n])[1]])[1])
-            canvas.create_line(x1,y1,x2,y2,fill="black")
+    if len(newvertices) > 0:
+        for i in range(len(objects)):
+            for n in range(len(objects[i])):
+                found = False
+                found2 = False
+                counter = 0
+                while (found == False) or (found2 == False):
+                    if counter == len(newvertices):
+                        found = True
+                        found2 = True
+                    elif newvertices[counter][2] == ((objects[i])[n])[0]:
+                        x1 = (newvertices[counter][0])
+                        y1 = (newvertices[counter][1])
+                        found = True
+                    elif newvertices[counter][2] == ((objects[i])[n])[1]:
+                        x2 = (newvertices[counter][0])
+                        y2 = (newvertices[counter][1])
+                        found2 = True
+                    counter += 1
+                """
+                x1 = ((newvertices[((objects[i])[n])[0]])[0])
+                y1 = ((newvertices[((objects[i])[n])[0]])[1])
+                x2 = ((newvertices[((objects[i])[n])[1]])[0])
+                y2 = ((newvertices[((objects[i])[n])[1]])[1])
+                """
+                if counter <= (len(newvertices)):
+                    canvas.create_line(x1,y1,x2,y2,fill="black")
     
 
 canvas = Canvas(root, background="white", height = str(height), width=str(width))
