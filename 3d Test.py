@@ -120,7 +120,7 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
                     l = [x1,y1,i,rendered]
                     newvertices.append(l)
             else:
-                if (angle>(360-fov) and angle < 360):
+                if (angle>=(360-fov) and angle < 360):
                     if(highy > yrotation1) or (lowy < yrotation1):
                         l = [x1,y1,i,rendered]
                         newvertices.append(l)
@@ -128,7 +128,6 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
                     if (highy > yrotation1) or (lowy < yrotation1):
                         l = [x1,y1,i,rendered]
                         newvertices.append(l)
-
     for i in range(len(newvertices)):
         if (newvertices[i])[3] == True:
             fx  = (newvertices[i])[0]+2
@@ -203,3 +202,4 @@ canvas.pack()
 
 Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height,fov)
 root.mainloop()
+    
