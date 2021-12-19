@@ -113,14 +113,14 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
             lowy = angle-fov
             if highy >= 360:
                 highy = highy-360
-            elif lowy < 0:
+            if lowy < 0:
                 lowy = 360+lowy
             if highy > lowy:
                 if (highy > yrotation1) and (lowy <= yrotation1):
                     l = [x1,y1,i,rendered]
                     newvertices.append(l)
             else:
-                if (angle>(360-fov) and angle <= 359):
+                if (angle>(360-fov) and angle < 360):
                     if(highy > yrotation1) or (lowy < yrotation1):
                         l = [x1,y1,i,rendered]
                         newvertices.append(l)
