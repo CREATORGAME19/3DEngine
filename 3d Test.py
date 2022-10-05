@@ -140,11 +140,11 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
             for n in range(len(objects[i])):
                 found = False
                 found2 = False
+                failed_search = False
                 counter = 0
-                while (found == False) or (found2 == False):
+                while ((found == False) or (found2 == False)) and (failed_search == False):
                     if counter == len(newvertices):
-                        found = True
-                        found2 = True
+                        failed_search = True
                     elif newvertices[counter][2] == ((objects[i])[n])[0]:
                         x1 = (newvertices[counter][0])
                         y1 = (newvertices[counter][1])
@@ -162,41 +162,48 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
                 x2 = ((newvertices[((objects[i])[n])[1]])[0])
                 y2 = ((newvertices[((objects[i])[n])[1]])[1])
                 """
-                if counter <= (len(newvertices)):
-                    """
-                    coordx1 = coords[rendered_1][0]
-                    coordy1 = coords[rendered_1][1]
-                    coordz1 = coords[rendered_1][2]
-                    coordx2 = coords[rendered_2][0]
-                    coordy2 = coords[rendered_2][1]
-                    coordz2 = coords[rendered_2][2]
-                    #Calculates 3d actual midpoint
-                    real_x_mid = (coordx1+coordx2)/2
-                    real_y_mid = (coordy1+coordy2)/2
-                    real_z_mid = (coordz1+coordz2)/2
-                    change_matrix = [[(real_x_mid-x)],[(real_y_mid-y)],[(real_z_mid-z)]]
-                    x_matrix = [[1,0,0],[0,math.cos(math.radians(xrotation)),math.sin(math.radians(xrotation))],[0, -1*math.sin(math.radians(xrotation)),math.cos(math.radians(xrotation))]]
-                    y_matrix = [[math.cos(math.radians(yrotation)),0,(-1*math.sin(math.radians(yrotation)))],[0,1,0],[math.sin(math.radians(yrotation)),0,math.cos(math.radians(yrotation))]]
-                    z_matrix = [[math.cos(math.radians(zrotation)),math.sin(math.radians(zrotation)),0],[(-1*math.sin(math.radians(zrotation))),math.cos(math.radians(zrotation)),0],[0,0,1]]
-                    m1 = matrix_multiply(change_matrix,x_matrix)
-                    m2 = matrix_multiply(m1,y_matrix)
-                    m3 = matrix_multiply(m2,z_matrix)
-                    x_temp = ((m3[0])[0]*width)/(m3[2])[0]
-                    y_temp = ((m3[1])[0]*height)/(m3[2])[0]
-                    #Calculate gradient from Point mid to Point 1 and compare with point 2
-                    if (x_temp-x1) != 0 and (x2-x_temp) != 0:
-                        gradient1 = round((y_temp-y1)/(x_temp-x1),10)
-                        gradient2 = round((y_temp-y2)/(x_temp-x2),10)
-                    elif x_temp-x1 == x2-x_temp:
-                        gradient1 = 0
-                        gradient2 = 0
-                    else:
-                        gradient1 = 0
-                        gradient2 = 1
-                    if (gradient1 == gradient2):
-                        canvas.create_line(x1+(width/2),y1+(height/2),x2+(width/2),y2+(height/2),fill="black")
-                    """
+                if failed_search == False:
                     canvas.create_line(x1+(width/2),y1+(height/2),x2+(width/2),y2+(height/2),fill="black")
+                else:
+                    if (found == True) or (found2 == True):
+                        ###CALCULATE PLANAR EQUATION
+                        perpendicular_x = -(math.sin(math.radians(yrotation)))
+                        perpendicular_z = (math.cos(math.radians(yrotation)))
+                        result_total = (perpendicular_x*x)+(0*y)+(perpendicular_z*z)
+                        coord1_x = (coords[((objects[i])[n])[0]])[0]
+                        coord1_y = (coords[((objects[i])[n])[0]])[1]
+                        coord1_z = (coords[((objects[i])[n])[0]])[2]
+                        coord2_x = (coords[((objects[i])[n])[1]])[0]
+                        coord2_y = (coords[((objects[i])[n])[1]])[1]
+                        coord2_z = (coords[((objects[i])[n])[1]])[2]
+                        vector_x = coord2_x-coord1_x
+                        vector_y = coord2_y-coord1_y
+                        vector_z = coord2_z-coord1_z
+                        result_total = result_total-(perpendicular_x*coord1_x)-(perpendicular_z*coord1_z)
+                        constant = result_total/((perpendicular_x*vector_x)+(perpendicular_z*vector_z))
+                        if found == True:
+                            constant += -0.01
+                        else:
+                            constant += 0.01
+                        newcoord_x = (constant*vector_x)+coord1_x
+                        newcoord_y = (constant*vector_y)+coord1_y
+                        newcoord_z = (constant*vector_z)+coord1_z
+                        change_matrix = [[(newcoord_x-x)],[(newcoord_y-y)],[(newcoord_z-z)]]
+                        x_matrix = [[1,0,0],[0,math.cos(math.radians(xrotation)),-1*math.sin(math.radians(xrotation))],[0, math.sin(math.radians(xrotation)),math.cos(math.radians(xrotation))]]
+                        y_matrix = [[math.cos(math.radians(yrotation)),0,(math.sin(math.radians(yrotation)))],[0,1,0],[-1*math.sin(math.radians(yrotation)),0,math.cos(math.radians(yrotation))]]
+                        z_matrix = [[math.cos(math.radians(zrotation)),-1*math.sin(math.radians(zrotation)),0],[(math.sin(math.radians(zrotation))),math.cos(math.radians(zrotation)),0],[0,0,1]]
+                        m1 = matrix_multiply(change_matrix,x_matrix)
+                        m2 = matrix_multiply(m1,y_matrix)
+                        m3 = matrix_multiply(m2,z_matrix)
+                        if found == True:
+                            x2 = ((m3[0])[0]*width)/(m3[2])[0]
+                            y2 = ((m3[1])[0]*height)/(m3[2])[0]
+                        else:
+                            x1 = ((m3[0])[0]*width)/(m3[2])[0]
+                            y1 = ((m3[1])[0]*height)/(m3[2])[0]
+                        canvas.create_line(x1+(width/2),y1+(height/2),x2+(width/2),y2+(height/2),fill="black")
+                        
+                    
 canvas = Canvas(root, background="white", height = str(height), width=str(width))
 canvas.pack()
 
