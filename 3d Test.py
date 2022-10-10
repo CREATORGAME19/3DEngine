@@ -14,19 +14,19 @@ def onKeyPress(event):
         z = z-1
         Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height,fov)
     elif (event.keysym) == "Right":
-        x = x-1
+        x += 1
         Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height,fov)
     elif (event.keysym) == "Left":
-        x += 1
+        x -= 1
         Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height,fov)
     elif (event.char) == " ":
         y+=1
         Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height,fov)
     elif (event.keysym) == "w":
-        y+=1
+        y -= 1
         Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height,fov)
     elif (event.keysym) == "s":
-        y = y-1
+        y += 1
         Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,width,height,fov)
     elif (event.keysym) == "d":
         if yrotation-1 < 0:
@@ -45,8 +45,9 @@ fov = 90
 xrotation = 0 # From centre
 yrotation = 0
 zrotation = 0
-coords = [[0,0,10],[0,10,10],[10,0,10],[10,10,10],[0,0,20],[0,10,20],[10,0,20],[10,10,20]] # [x,y,z]
-objects = [[[0,1],[0,2],[1,3],[2,3],[0,4],[1,5],[2,6],[3,7],[4,5],[4,6],[6,7],[5,7]],[]]
+coords = [[0,0,10],[0,10,10],[10,0,10],[10,10,10],[0,0,20],[0,10,20],[10,0,20],[10,10,20],[30,0,10],[30,10,10],[40,0,10],[40,10,10],[30,0,20],[30,10,20],[40,0,20],[40,10,20]] # [x,y,z]
+objects = [[[0,1],[0,2],[1,3],[2,3],[0,4],[1,5],[2,6],[3,7],[4,5],[4,6],[6,7],[5,7]],[[8,9],[8,10],[9,11],[10,11],[8,12],[9,13],[10,14],[11,15],[12,13],[12,14],[14,15],[13,15]]]
+fill = [[0,1,3,2,"green"],[0,4,5,1,"red"],[4,5,7,6,"blue"],[2,3,7,6,"yellow"]]
 root.bind('<KeyPress>', onKeyPress)
 def matrix_multiply(a,b):
     new_matrix = []
@@ -135,6 +136,7 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
             sx  = (newvertices[i])[0]-2
             sy  = (newvertices[i])[1]-2
             canvas.create_oval((fx+(width/2),fy+(height/2),sx+(width/2),sy+(height/2)),fill = "black")
+    lines_rendered = []
     if len(newvertices) > 0:
         for i in range(len(objects)):
             for n in range(len(objects[i])):
@@ -163,7 +165,45 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
                 y2 = ((newvertices[((objects[i])[n])[1]])[1])
                 """
                 if failed_search == False:
+                    coord1_x = (coords[((objects[i])[n])[0]])[0]
+                    coord1_y = (coords[((objects[i])[n])[0]])[1]
+                    coord1_z = (coords[((objects[i])[n])[0]])[2]
+                    coord2_x = (coords[((objects[i])[n])[1]])[0]
+                    coord2_y = (coords[((objects[i])[n])[1]])[1]
+                    coord2_z = (coords[((objects[i])[n])[1]])[2]
                     canvas.create_line(x1+(width/2),y1+(height/2),x2+(width/2),y2+(height/2),fill="black")
+                    distance1 = math.sqrt((coord1_x-x)**2 + (coord1_y-y)**2 + (coord1_z-z)**2)
+                    distance2 = math.sqrt((coord2_x-x)**2 + (coord2_y-y)**2 + (coord2_z-z)**2)
+                    place_1 = False
+                    place_2 = False
+                    counter_1 = 0
+                    counter_2 = 0
+                    already_there1 = False
+                    already_there2 = False
+                    while place_1 == False:
+                        if counter_1 == len(lines_rendered):
+                            place_1 = True
+                        elif (distance1 < (lines_rendered[counter_1])[3]):
+                            place_1 = True
+                        else:
+                            counter_1 += 1
+                    if len(lines_rendered) != 0:    
+                        if (lines_rendered[int(counter_1)-1])[2] == (objects[i])[n][0]:
+                            already_there1 = True
+                    while place_2 == False:
+                        if counter_2 == len(lines_rendered):
+                            place_2 = True
+                        elif (distance2 < (lines_rendered[counter_2])[3]):
+                            place_2 = True
+                        else:
+                            counter_2 += 1
+                    if len(lines_rendered) != 0: 
+                        if (lines_rendered[int(counter_2)-1])[2] == (objects[i])[n][1]:
+                            already_there2 = True
+                    if already_there1 == False:
+                        lines_rendered.insert(counter_1,[x1,y1,((objects[i])[n])[0],distance1])
+                    if already_there2 == False:
+                        lines_rendered.insert(counter_2,[x2,y2,((objects[i])[n])[1],distance2])
                 else:
                     if (found == True) or (found2 == True):
                         ###CALCULATE PLANAR EQUATION
@@ -182,9 +222,9 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
                         result_total = result_total-(perpendicular_x*coord1_x)-(perpendicular_z*coord1_z)
                         constant = result_total/((perpendicular_x*vector_x)+(perpendicular_z*vector_z))
                         if found == True:
-                            constant += -0.01
+                            constant += -0.00001
                         else:
-                            constant += 0.01
+                            constant += 0.00001
                         newcoord_x = (constant*vector_x)+coord1_x
                         newcoord_y = (constant*vector_y)+coord1_y
                         newcoord_z = (constant*vector_z)+coord1_z
@@ -195,14 +235,89 @@ def Update_Canvas(coords,x,y,z,canvas,objects,xrotation,yrotation,zrotation,widt
                         m1 = matrix_multiply(change_matrix,x_matrix)
                         m2 = matrix_multiply(m1,y_matrix)
                         m3 = matrix_multiply(m2,z_matrix)
-                        if found == True:
-                            x2 = ((m3[0])[0]*width)/(m3[2])[0]
-                            y2 = ((m3[1])[0]*height)/(m3[2])[0]
-                        else:
-                            x1 = ((m3[0])[0]*width)/(m3[2])[0]
-                            y1 = ((m3[1])[0]*height)/(m3[2])[0]
-                        canvas.create_line(x1+(width/2),y1+(height/2),x2+(width/2),y2+(height/2),fill="black")
-                        
+                        if (m3[2])[0] != 0:
+                            if found == True:
+                                x2 = ((m3[0])[0]*width)/(m3[2])[0]
+                                y2 = ((m3[1])[0]*height)/(m3[2])[0]
+                            else:
+                                x1 = ((m3[0])[0]*width)/(m3[2])[0]
+                                y1 = ((m3[1])[0]*height)/(m3[2])[0]
+                            canvas.create_line(x1+(width/2),y1+(height/2),x2+(width/2),y2+(height/2),fill="black")
+                            distance1 = math.sqrt((coord1_x-x)**2 + (coord1_y-y)**2 + (coord1_z-z)**2)
+                            distance2 = math.sqrt((coord2_x-x)**2 + (coord2_y-y)**2 + (coord2_z-z)**2)
+                            place_1 = False
+                            place_2 = False
+                            counter_1 = 0
+                            counter_2 = 0
+                            already_there1 = False
+                            already_there2 = False
+                            while place_1 == False:
+                                if counter_1 == len(lines_rendered):
+                                    place_1 = True
+                                elif (distance1 < (lines_rendered[counter_1])[3]):
+                                    place_1 = True
+                                else:
+                                    counter_1 += 1
+                            if len(lines_rendered) != 0: 
+                                if (lines_rendered[int(counter_1)-1])[2] == (objects[i])[n][0]:
+                                    already_there1 = True
+                            while place_2 == False:
+                                if counter_2 == len(lines_rendered):
+                                    place_2 = True
+                                elif (distance2 < (lines_rendered[counter_2])[3]):
+                                    place_2 = True
+                                else:
+                                    counter_2 += 1
+                            if len(lines_rendered) != 0: 
+                                if (lines_rendered[int(counter_2)-1])[2] == (objects[i])[n][1]:
+                                    already_there2 = True
+                            if already_there1 == False:
+                                lines_rendered.insert(counter_1,[x1,y1,((objects[i])[n])[0],distance1])
+                            if already_there2 == False:
+                                lines_rendered.insert(counter_2,[x2,y2,((objects[i])[n])[1],distance2])
+        lines_rendered.reverse()
+        fill_render = []
+        fill_render_temp = []
+        for i in range(len(fill)):
+            fill_render.append([])
+            fill_render_temp.append([])
+            for n in range(len(fill[i])-1):
+                fill_render[i].append([])
+                fill_render_temp[i].append([])
+            fill_render[i].append(fill[i][-1])
+            fill_render_temp[i].append(fill[i][-1])
+        for i in range(len(lines_rendered)):
+            for n in range(len(fill)):
+                for k in range(len(fill[n])-1):
+                    if (fill[n][k] == lines_rendered[i][2]):
+                        (fill_render_temp[n][k]) = ([lines_rendered[i][0],lines_rendered[i][1],lines_rendered[i][3]])
+        for i in range(len(fill_render_temp)):
+            max_distance = 0
+            for n in range(len(fill_render_temp[i])-1):
+                if (max_distance < fill_render_temp[i][n][2]):
+                    max_distance = fill_render_temp[i][n][2]
+            fill_render_temp[i].append(max_distance)
+        for i in range(1,len(fill_render_temp)):
+            key = fill_render_temp[i]
+            j = i-1
+            while j >=0 and key[-1] < fill_render_temp[j][-1] :
+                    fill_render_temp[j+1] = fill_render_temp[j]
+                    j -= 1
+            fill_render_temp[j+1] = key
+        fill_render_temp.reverse()
+        for i in range(len(fill_render_temp)):
+            fill_render[i] = fill_render_temp[i][:-1]
+                
+        for i in range(len(fill_render)):
+            points = []
+            fill_colour = fill_render[i][-1]
+            for n in range(len(fill_render[i])-1):
+                if len(fill_render[i][n]) != 0:
+                    points.append(fill_render[i][n][0]+(width/2))
+                    points.append(fill_render[i][n][1]+(height/2))
+            if (len(points)/2) == (len(fill[i])-1):
+                canvas.create_polygon(points, fill=fill_colour, outline=fill_colour)
+            
                     
 canvas = Canvas(root, background="white", height = str(height), width=str(width))
 canvas.pack()
